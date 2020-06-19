@@ -1,35 +1,45 @@
 import pygame
-import random
+import random, os
 
 SNAKE_SIZE = 12
-WIDTH, HEIGHT = SNAKE_SIZE * 40, 420
+WIDTH, HEIGHT = SNAKE_SIZE * 40, SNAKE_SIZE * 35
 GAME_POS_X, GAME_POS_Y = SNAKE_SIZE, 50
 GAME_WIDTH, GAME_HEIGHT = WIDTH - 2 * GAME_POS_X, SNAKE_SIZE * 25
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Snake")
+pygame.display.set_caption("Snake Game")
 
 # Colors
 WHITE = (255,255,255)
 BLACK = (0,0,0)
-GREEN = (0,255,0)
+GRAY = (150,150,150)
+GREEN = (79,205,177)
+BLUE = (128, 212, 255)
 RED = (255,0,0)
+
+# Fonts
+pygame.font.init()
+TITLE_FONT = pygame.font.SysFont("comicsans", 50)
+MESSAGE_FONT  = pygame.font.SysFont("comicsans", 30)
+
+# Images
+SNAKE_IMG = pygame.transform.rotozoom(pygame.image.load(os.path.join("img", "snake.png")), 0, 0.27)
+APPLE_IMG = pygame.transform.rotozoom(pygame.image.load(os.path.join("img", "apple.png")), 0, 0.07)
+
 
 class Snake():
     def __init__(self, size, color):
         self.size = size
         self.color = color
-        self.snake = []
-        self.start_snake()
-        self.food = Food(size, RED)
-        
+        self.body = []
+        self.start_snake()        
 
     def start_snake(self):
         for i in range(5):
-            self.snake.append(Snake_Square(self.size, self.color, GAME_POS_X + self.size * 10 - i * self.size, GAME_POS_Y))
-        self.head = self.snake[0]
+            self.body.append(Snake_Square(self.size, self.color, GAME_POS_X + self.size * (18 - i), 12 * self.size + GAME_POS_Y))
+        self.head = self.body[0]
 
     def draw_snake(self):
-        for square in self.snake:
+        for square in self.body:
             square.draw_square()
 
     def move_snake(self, direction):
@@ -45,23 +55,23 @@ class Snake():
         if direction == "right":
             self.head.x += self.size
 
-        for square in self.snake[1:]:
+        for square in self.body[1:]:
             x2, y2 = square.x, square.y
             square.x, square.y = self.x, self.y
             self.x, self.y = x2, y2 
         
-        self.head = self.snake[0]
+        self.head = self.body[0]
 
-    def grabbed_food(self):
-        if [self.head.x, self.head.y] == [self.food.x, self.food.y]:
-            self.food.change_food(self.snake)
-            self.grow_snake()
-    
+    def grabbed_food(self, food):
+        if [self.head.x, self.head.y] == [food.x, food.y]:
+            return True
+        return False
+
     def grow_snake(self):
         for i in range(2): 
-            x = (self.snake[len(self.snake) - 2].x - self.snake[len(self.snake) - 1].x) / 12
-            y = (self.snake[len(self.snake) - 2].y - self.snake[len(self.snake) - 1].y) / 12
-            self.snake.append(Snake_Square(self.size, self.color, self.snake[len(self.snake) - 1].x + self.size * x, self.snake[len(self.snake) - 1].y + self.size * y))
+            x = (self.body[len(self.body) - 2].x - self.body[len(self.body) - 1].x) / 12
+            y = (self.body[len(self.body) - 2].y - self.body[len(self.body) - 1].y) / 12
+            self.body.append(Snake_Square(self.size, self.color, int(self.body[len(self.body) - 1].x + self.size * x), int(self.body[len(self.body) - 1].y + self.size * y)))
 
     def collision(self):
         if self.head.x < GAME_POS_X or self.head.x > (GAME_POS_X + GAME_WIDTH - self.size):
@@ -69,7 +79,7 @@ class Snake():
         if self.head.y < GAME_POS_Y or self.head.y > (GAME_POS_Y + GAME_HEIGHT - self.size):
             return True
 
-        for square in self.snake[1:]:
+        for square in self.body[1:]:
             if [self.head.x, self.head.y] == [square.x, square.y]:
                 return True
         return False  
@@ -84,6 +94,7 @@ class Snake_Square():
         self.draw_square()
 
     def draw_square(self):
+        #pygame.draw.rect(WIN, BLACK, (self.x , self.y, self.size, self.size))
         pygame.draw.rect(WIN, self.color, (self.x + 1 , self.y + 1, self.size - 2, self.size - 2))
 
 class Food():
@@ -106,32 +117,61 @@ class Food():
                     run = True
     
     def draw_food(self):
-        pygame.draw.rect(WIN, self.color, (self.x, self.y, self.size, self.size))
+        radius = self.size // 2
+        pygame.draw.circle(WIN, self.color, (self.x + radius, self.y + radius), radius)
 
 
 def main():
     run = True
     FPS = 15
-    snake = Snake(SNAKE_SIZE, GREEN)
+    snake = Snake(SNAKE_SIZE, WHITE)
+    food = Food(SNAKE_SIZE, RED)
     direction = "right"
+    pause = False
+    start = False
     clock = pygame.time.Clock()
 
     def redraw_window():
-        WIN.fill(GREEN)
-        pygame.draw.rect(WIN, WHITE, (GAME_POS_X, GAME_POS_Y, GAME_WIDTH, GAME_HEIGHT))
-        snake.draw_snake()
-        snake.food.draw_food()
-        
+        WIN.fill(WHITE)
+        title = TITLE_FONT.render("SNAKE GAME", 1, BLACK)
+        WIN.blit(title, (((WIDTH - title.get_width()) // 2), (GAME_POS_Y - title.get_height()) // 2))
+        #WIN.blit(SNAKE_IMG, (GAME_POS_X,0))
+        #WIN.blit(APPLE_IMG, (430,10))
+        pygame.draw.rect(WIN, BLACK, (GAME_POS_X - 2, GAME_POS_Y - 2, GAME_WIDTH + 4, GAME_HEIGHT + 4))
+        pygame.draw.rect(WIN, GREEN, (GAME_POS_X, GAME_POS_Y, GAME_WIDTH, GAME_HEIGHT))
+
+        if not start:
+            text = MESSAGE_FONT.render("Press any key to start...", 1, BLACK)
+            WIN.blit(text, (((WIDTH - text.get_width()) // 2),300))
+        elif pause:
+            pass
+        else:
+            snake.draw_snake()
+            food.draw_food()
+
         pygame.display.update()
 
     while run:
+
         clock.tick(FPS)
+        
         snake.move_snake(direction)
         if snake.collision():
             run = False
-            break
+            main()
+
+        if snake.grabbed_food(food):
+            food.change_food(snake.body)
+            snake.grow_snake()
 
         redraw_window()
+
+        while not start:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    quit()
+                if event.type == pygame.KEYDOWN:
+                    start = True
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -149,9 +189,5 @@ def main():
                 if event.key == pygame.K_RIGHT and direction != "left":
                     direction = "right"
                     break
-
-        snake.grabbed_food()
-
-
 
 main()
