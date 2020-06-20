@@ -1,29 +1,32 @@
 import pygame
 import random, os
 
+
 SNAKE_SIZE = 12
-WIDTH, HEIGHT = SNAKE_SIZE * 40, SNAKE_SIZE * 35
-GAME_POS_X, GAME_POS_Y = SNAKE_SIZE, 50
-GAME_WIDTH, GAME_HEIGHT = WIDTH - 2 * GAME_POS_X, SNAKE_SIZE * 25
+ROWS, COLUMNS = 25, 40
+WIDTH, HEIGHT = SNAKE_SIZE * COLUMNS, 440
+GAME_POS_X, GAME_POS_Y = SNAKE_SIZE, 80
+GAME_WIDTH, GAME_HEIGHT = WIDTH - 2 * GAME_POS_X, SNAKE_SIZE * ROWS
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Snake Game")
+SNAKE_ICON = pygame.image.load(os.path.join("img", "snake.png"))
+pygame.display.set_icon(SNAKE_ICON)
 
 # Colors
 WHITE = (255,255,255)
 BLACK = (0,0,0)
-GRAY = (150,150,150)
+GRAY = (230,230,230)
 GREEN = (79,205,177)
-BLUE = (128, 212, 255)
 RED = (255,0,0)
+PURPLE = (128,0,128)
 
 # Fonts
 pygame.font.init()
-TITLE_FONT = pygame.font.SysFont("comicsans", 50)
-MESSAGE_FONT  = pygame.font.SysFont("comicsans", 30)
-
-# Images
-SNAKE_IMG = pygame.transform.rotozoom(pygame.image.load(os.path.join("img", "snake.png")), 0, 0.27)
-APPLE_IMG = pygame.transform.rotozoom(pygame.image.load(os.path.join("img", "apple.png")), 0, 0.07)
+TITLE_FONT = pygame.font.Font("fonts/ka1.ttf", 40)
+SCORE_FONT = pygame.font.Font("fonts/FakeHope.ttf", 35)
+GAME_FONT = pygame.font.Font("fonts/game_over.ttf", 80)
+GAME_FONT_2 = pygame.font.Font("fonts/game_over.ttf", 30)
+GAME_FONT_3 = pygame.font.Font("fonts/game_over.ttf", 50)
 
 
 class Snake():
@@ -34,8 +37,8 @@ class Snake():
         self.start_snake()        
 
     def start_snake(self):
-        for i in range(5):
-            self.body.append(Snake_Square(self.size, self.color, GAME_POS_X + self.size * (18 - i), 12 * self.size + GAME_POS_Y))
+        self.body.append(Snake_Square(self.size, self.color, GAME_POS_X, GAME_POS_Y + self.size * (ROWS // 2)))
+        self.grow_snake(4)
         self.head = self.body[0]
 
     def draw_snake(self):
@@ -67,10 +70,14 @@ class Snake():
             return True
         return False
 
-    def grow_snake(self):
-        for i in range(2): 
-            x = (self.body[len(self.body) - 2].x - self.body[len(self.body) - 1].x) / 12
-            y = (self.body[len(self.body) - 2].y - self.body[len(self.body) - 1].y) / 12
+    def grow_snake(self, squares, direction = None):
+        for i in range(squares): 
+            if direction:
+                x = -1
+                y = 0
+            else:
+                x = (self.body[len(self.body) - 2].x - self.body[len(self.body) - 1].x) / 12
+                y = (self.body[len(self.body) - 2].y - self.body[len(self.body) - 1].y) / 12
             self.body.append(Snake_Square(self.size, self.color, int(self.body[len(self.body) - 1].x + self.size * x), int(self.body[len(self.body) - 1].y + self.size * y)))
 
     def collision(self):
@@ -84,6 +91,14 @@ class Snake():
                 return True
         return False  
 
+    def change_color(self):
+        color1 = random.randint(100,255)
+        color2 = random.randint(100,255)
+        color3 = random.randint(100,255)
+        for square in self.body:
+            square.color = (color1,color2,color3) 
+
+
 
 class Snake_Square():
     def __init__(self, size, color, xcoor, ycoor):
@@ -94,7 +109,6 @@ class Snake_Square():
         self.draw_square()
 
     def draw_square(self):
-        #pygame.draw.rect(WIN, BLACK, (self.x , self.y, self.size, self.size))
         pygame.draw.rect(WIN, self.color, (self.x + 1 , self.y + 1, self.size - 2, self.size - 2))
 
 class Food():
@@ -120,31 +134,69 @@ class Food():
         radius = self.size // 2
         pygame.draw.circle(WIN, self.color, (self.x + radius, self.y + radius), radius)
 
+def pressed_key():
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quit()
+            if event.type == pygame.KEYDOWN:
+                return True
 
-def main():
+def game_over():
+    white = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
+    white.set_alpha(180)
+    WIN.blit(white, (GAME_POS_X,GAME_POS_Y))
+
+    text = GAME_FONT.render("GAME OVER", 1, WHITE)
+    y = ((GAME_HEIGHT - text.get_height()) // 2) + GAME_POS_Y - 20
+    WIN.blit(text, (((WIDTH - text.get_width()) // 2), y))
+    text2 = GAME_FONT_2.render("PRESS ANY KEY TO PLAY AGAIN", 1, WHITE)
+    WIN.blit(text2, (((WIDTH - text2.get_width()) // 2), y + text.get_height()))
+
+    pygame.display.update()
+
+
+def pause():
+    white = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
+    white.set_alpha(180)
+    WIN.blit(white, (GAME_POS_X,GAME_POS_Y))
+
+    text = GAME_FONT.render("PAUSED GAME", 1, WHITE)
+    y = ((GAME_HEIGHT - text.get_height()) // 2) + GAME_POS_Y - 20
+    WIN.blit(text, (((WIDTH - text.get_width()) // 2), y))
+    text2 = GAME_FONT_2.render("PRESS ANY KEY TO CONTINUE", 1, WHITE)
+    WIN.blit(text2, (((WIDTH - text2.get_width()) // 2), y + text.get_height()))
+
+    pygame.display.update()
+    pressed_key()
+
+def main(start = False, top_score = 0):
     run = True
     FPS = 15
-    snake = Snake(SNAKE_SIZE, WHITE)
+    snake = Snake(SNAKE_SIZE, GREEN)
     food = Food(SNAKE_SIZE, RED)
     direction = "right"
-    pause = False
-    start = False
+    score = 0
     clock = pygame.time.Clock()
 
     def redraw_window():
-        WIN.fill(WHITE)
-        title = TITLE_FONT.render("SNAKE GAME", 1, BLACK)
+
+        WIN.fill(GRAY)
+        title = TITLE_FONT.render("SNAKE GAME", 1, PURPLE)
         WIN.blit(title, (((WIDTH - title.get_width()) // 2), (GAME_POS_Y - title.get_height()) // 2))
-        #WIN.blit(SNAKE_IMG, (GAME_POS_X,0))
-        #WIN.blit(APPLE_IMG, (430,10))
-        pygame.draw.rect(WIN, BLACK, (GAME_POS_X - 2, GAME_POS_Y - 2, GAME_WIDTH + 4, GAME_HEIGHT + 4))
-        pygame.draw.rect(WIN, GREEN, (GAME_POS_X, GAME_POS_Y, GAME_WIDTH, GAME_HEIGHT))
+        pygame.draw.rect(WIN, BLACK, (GAME_POS_X, GAME_POS_Y, GAME_WIDTH, GAME_HEIGHT))
+        score_label = SCORE_FONT.render(f"SCORE: {score}", 1, BLACK)
+        WIN.blit(score_label, (GAME_POS_X, (HEIGHT - score_label.get_height() - 10)))
+        topscore_label = SCORE_FONT.render(f"TOP SCORE: {top_score}", 1, BLACK)
+        WIN.blit(topscore_label, ((GAME_POS_X + GAME_WIDTH - topscore_label.get_width()), (HEIGHT - topscore_label.get_height() - 10)))
 
         if not start:
-            text = MESSAGE_FONT.render("Press any key to start...", 1, BLACK)
-            WIN.blit(text, (((WIDTH - text.get_width()) // 2),300))
-        elif pause:
-            pass
+            white = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
+            white.set_alpha(180)
+            WIN.blit(white, (GAME_POS_X,GAME_POS_Y))
+            text = GAME_FONT_3.render("PRESS ANY KEY TO START", 1, WHITE)
+            y = ((GAME_HEIGHT - text.get_height()) // 2) + GAME_POS_Y - 10
+            WIN.blit(text, (((WIDTH - text.get_width()) // 2), y))
         else:
             snake.draw_snake()
             food.draw_food()
@@ -154,29 +206,36 @@ def main():
     while run:
 
         clock.tick(FPS)
-        
         snake.move_snake(direction)
+
         if snake.collision():
-            run = False
-            main()
+            game_over()
+            pressed_key()
+            main(True, top_score)
+
 
         if snake.grabbed_food(food):
+            score +=10
             food.change_food(snake.body)
-            snake.grow_snake()
+            snake.grow_snake(2)
+            snake.change_color()
+        
+        if score > top_score:
+            top_score = score
 
         redraw_window()
 
         while not start:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    quit()
-                if event.type == pygame.KEYDOWN:
-                    start = True
+            if pressed_key():
+                start = True
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quit()
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:
+                    pause()
+                    redraw_window()
                 if event.key == pygame.K_UP and direction != "down":
                     direction = "up"
                     break
@@ -189,5 +248,6 @@ def main():
                 if event.key == pygame.K_RIGHT and direction != "left":
                     direction = "right"
                     break
-
-main()
+                
+while True:
+    main()
