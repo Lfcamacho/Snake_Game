@@ -9,15 +9,18 @@ class Snake():
         self.body = []
         self.start_snake()        
 
+    # creates snake's body when game starts
     def start_snake(self):
         self.body.append(Snake_Square(self.size, self.color, GAME_POS_X, GAME_POS_Y + self.size * (ROWS // 2)))
         self.grow_snake(4)
         self.head = self.body[0]
 
+    # draws each square of snake's body
     def draw_snake(self, WIN):
         for square in self.body:
             square.draw_square(WIN)
 
+    # updates each snake's body square x and y position
     def move_snake(self, direction):
         self.x = self.head.x
         self.y = self.head.y
@@ -38,11 +41,13 @@ class Snake():
         
         self.head = self.body[0]
 
+    # checks if snake have grabbed the food
     def grabbed_food(self, food):
         if [self.head.x, self.head.y] == [food.x, food.y]:
             return True
         return False
 
+    # adds a given number of squares to the end of snake on a given direction
     def grow_snake(self, squares, direction = None):
         for i in range(squares): 
             if direction:
@@ -53,6 +58,7 @@ class Snake():
                 y = (self.body[len(self.body) - 2].y - self.body[len(self.body) - 1].y) / 12
             self.body.append(Snake_Square(self.size, self.color, int(self.body[len(self.body) - 1].x + self.size * x), int(self.body[len(self.body) - 1].y + self.size * y)))
 
+    # checks if snake have made a collision with himself or the borders
     def collision(self):
         if self.head.x < GAME_POS_X or self.head.x > (GAME_POS_X + GAME_WIDTH - self.size):
             return True
@@ -64,6 +70,7 @@ class Snake():
                 return True
         return False  
 
+    # changes color of the snake
     def change_color(self):
         color1 = random.randint(100,255)
         color2 = random.randint(100,255)
@@ -87,6 +94,7 @@ class Food():
         self.color = color
         self.change_food()
     
+    # changes food position
     def change_food(self, snake = []):
         run = True
         while run:

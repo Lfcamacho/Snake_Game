@@ -1,5 +1,6 @@
 import pygame
 
+# window settings
 SNAKE_SIZE = 12
 ROWS, COLUMNS = 25, 40
 WIDTH, HEIGHT = SNAKE_SIZE * COLUMNS, 440

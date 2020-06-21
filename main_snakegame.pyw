@@ -9,9 +9,7 @@ pygame.display.set_caption("Snake Game")
 SNAKE_ICON = pygame.image.load(os.path.join("img", "snake.png"))
 pygame.display.set_icon(SNAKE_ICON)
 
-
-
-        
+# wait till user presses a jey to continue
 def pressed_key():
     while True:
         for event in pygame.event.get():
@@ -20,6 +18,7 @@ def pressed_key():
             if event.type == pygame.KEYDOWN:
                 return True
 
+# screen display when snake makes a collision (lost)
 def game_over():
     white = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
     white.set_alpha(180)
@@ -34,7 +33,7 @@ def game_over():
     pygame.display.update()
     pressed_key()
 
-
+# screen display when game is paused
 def pause():
     white = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
     white.set_alpha(180)
@@ -49,6 +48,7 @@ def pause():
     pygame.display.update()
     pressed_key()
 
+# screen display when just opened the game
 def start_screen():
     white = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
     white.set_alpha(180)
@@ -60,7 +60,7 @@ def start_screen():
     pressed_key()
     return True
 
-
+# redraws titles, scores and game area
 def redraw_window(score, top_score):
 
     WIN.fill(GRAY)
@@ -69,21 +69,24 @@ def redraw_window(score, top_score):
     pygame.draw.rect(WIN, BLACK, (GAME_POS_X, GAME_POS_Y, GAME_WIDTH, GAME_HEIGHT))
     score_label = SCORE_FONT.render(f"SCORE: {score}", 1, BLACK)
     WIN.blit(score_label, (GAME_POS_X, (HEIGHT - score_label.get_height() - 10)))
-    topscore_label = SCORE_FONT.render(f"TOP SCORE: {top_score}", 1, BLACK)
+    topscore_label = SCORE_FONT.render(f"HIGHSCORE: {top_score}", 1, BLACK)
     WIN.blit(topscore_label, ((GAME_POS_X + GAME_WIDTH - topscore_label.get_width()), (HEIGHT - topscore_label.get_height() - 10)))
 
 
 def main(start = False):
 
-    f = open(HS_FILE,"r")
+    # load highscore file and read value
     try:
+        f = open(HS_FILE,"r")
         highscore = int(f.read())
-    except:
+        f.close()
+    except:        
         highscore = 0
-    f.close()
+    
 
     run = True
     FPS = 14
+    # create snake object and food object
     snake = Snake(SNAKE_SIZE, GREEN)
     food = Food(SNAKE_SIZE, RED)
     direction = "right"
@@ -97,7 +100,7 @@ def main(start = False):
 
         if snake.collision():
             game_over()
-            main(True)
+            main(True)  # restart game by calling main()
 
         if snake.grabbed_food(food):
             score +=10
@@ -108,6 +111,7 @@ def main(start = False):
         if score > highscore:
             highscore = score
 
+            # save new highscore in text file
             f = open(HS_FILE,"w")
             f.write(str(score))
             f.close()
