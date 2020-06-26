@@ -9,7 +9,7 @@ pygame.display.set_caption("Snake Game")
 SNAKE_ICON = pygame.image.load(os.path.join("img", "snake.png"))
 pygame.display.set_icon(SNAKE_ICON)
 
-# wait till user presses a jey to continue
+# wait till user presses a key to continue
 def pressed_key():
     while True:
         for event in pygame.event.get():
@@ -18,34 +18,27 @@ def pressed_key():
             if event.type == pygame.KEYDOWN:
                 return True
 
-# screen display when snake makes a collision (lost)
-def game_over():
+def screen_message(main_text, secondary_text):
     white = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
     white.set_alpha(180)
     WIN.blit(white, (GAME_POS_X,GAME_POS_Y))
 
-    text = GAME_FONT.render("GAME OVER", 1, WHITE)
+    text = GAME_FONT.render(main_text, 1, WHITE)
     y = ((GAME_HEIGHT - text.get_height()) // 2) + GAME_POS_Y - 20
     WIN.blit(text, (((WIDTH - text.get_width()) // 2), y))
-    text2 = GAME_FONT_2.render("PRESS ANY KEY TO PLAY AGAIN", 1, WHITE)
+    text2 = GAME_FONT_2.render(secondary_text, 1, WHITE)
     WIN.blit(text2, (((WIDTH - text2.get_width()) // 2), y + text.get_height()))
 
     pygame.display.update()
+
+# screen display when snake makes a collision (lost)
+def game_over():
+    screen_message("GAME OVER", "PRESS ANY KEY TO PLAY AGAIN")
     pressed_key()
 
 # screen display when game is paused
 def pause():
-    white = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
-    white.set_alpha(180)
-    WIN.blit(white, (GAME_POS_X,GAME_POS_Y))
-
-    text = GAME_FONT.render("PAUSED GAME", 1, WHITE)
-    y = ((GAME_HEIGHT - text.get_height()) // 2) + GAME_POS_Y - 20
-    WIN.blit(text, (((WIDTH - text.get_width()) // 2), y))
-    text2 = GAME_FONT_2.render("PRESS ANY KEY TO CONTINUE", 1, WHITE)
-    WIN.blit(text2, (((WIDTH - text2.get_width()) // 2), y + text.get_height()))
-
-    pygame.display.update()
+    screen_message("PAUSED GAME", "PRESS ANY KEY TO CONTINUE")
     pressed_key()
 
 # screen display when just opened the game
@@ -53,6 +46,7 @@ def start_screen():
     white = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
     white.set_alpha(180)
     WIN.blit(white, (GAME_POS_X,GAME_POS_Y))
+    
     text = GAME_FONT_3.render("PRESS ANY KEY TO START", 1, WHITE)
     y = ((GAME_HEIGHT - text.get_height()) // 2) + GAME_POS_Y - 10
     WIN.blit(text, (((WIDTH - text.get_width()) // 2), y))
@@ -81,8 +75,7 @@ def main(start = False):
         highscore = int(f.read())
         f.close()
     except:        
-        highscore = 0
-    
+        highscore = 0  
 
     run = True
     FPS = 14
@@ -110,7 +103,6 @@ def main(start = False):
         
         if score > highscore:
             highscore = score
-
             # save new highscore in text file
             f = open(HS_FILE,"w")
             f.write(str(score))
@@ -126,7 +118,7 @@ def main(start = False):
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
+                quit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_p:
                     pause()
